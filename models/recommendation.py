@@ -23,8 +23,7 @@ class RecommendationModel(datastorage.Model):
             'recommendation_id': self.recommendation_id,
             'name': self.name,
             'email': self.email,
-            'employee_id': self.employee_id,
-            'employee': self.employee
+            'employee': self.employee.json()
 
         }
 

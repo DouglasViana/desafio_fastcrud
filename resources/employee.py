@@ -2,14 +2,68 @@ from flask_restful import Resource, reqparse
 from models.employee import EmployeeModel
 from flask import request, jsonify
 from sql_alchemy import datastorage
+import mysql.conector
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+
+my_user = os.getenv("USER")
+my_password = os.getenv("PASS")
+my_host = os.getenv("HOST")
+my_database = os.getenv("DATABASE")
+
+def normalize_path_params(employee_id,
+                          name,
+                          cpf,
+                          team,
+                          limit=10,
+                          offset=0, **workers):
+     if limit:
+         return {
+             'employee_id': employee_id,
+             'name': name,
+             'cpf': cpf,
+             'team': team.json(),
+             'limit': limit,
+             'offset': offset
+         }
+
+path_params = reqparse.RequestParser()
+path_params.add_argument('employee_id', type=int)
+path_params.add_argument('name', type=str)
+path_params.add_argument('limit', type=float)
+path_params.add_argument('offset', type=float)
 
 class Employees(Resource):
 
     def get(self):
+        connection = mysql.connector.connect(user=my_user, password=my_password,
+                                             host=my_host,
+                                             database=my_database)
+        cursor = connection.cursor()
+
+        workers = path_params.parse_args()
+        workers_valid = {chave:workers[chave] for chave in workers if workers[chave] is not None}
+        parametros = normalize_path_params(**workers_valid)
+
+        if parametros.get('limit'):
+            query = "SELECT * FROM employees \
+                    LIMIT %s OFFSET %s"
+            tupla = tuple([parametros[chave]for chave in parametros])
+            cursor.execute(query, tupla)
+            result = cursor.fetchall()
+
         trab = []
-        for employee in EmployeeModel.query.all():
-            trab.append(employee.json())
+        if result:
+            for row in result:
+                trab.append({
+                    'employee_id': row[0],
+                    'name': row[1],
+                    'cpf': row[2],
+                    'team': row[3]
+                })
+
         return {'employees': trab}
 
     def post(self):

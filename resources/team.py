@@ -2,10 +2,25 @@ from flask_restful import Resource, reqparse
 from models.team import TeamModel
 from flask import request, jsonify
 from sql_alchemy import datastorage
+import mysql.conector
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+my_user = os.getenv("USER")
+my_password = os.getenv("PASS")
+my_host = os.getenv("HOST")
+my_database = os.getenv("DATABASE")
 
 class Teams(Resource):
 
     def get(self):
+        connection = mysql.connector.connect(user=my_user, password=my_password,
+                                             host=my_host,
+                                             database=my_database)
+        cursor = connection.cursor()
+
         times = []
         for team in TeamModel.query.all():
             times.append(team.json())

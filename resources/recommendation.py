@@ -2,15 +2,37 @@ from flask_restful import Resource, reqparse
 from models.recommendation import RecommendationModel
 from flask import request, jsonify
 from sql_alchemy import datastorage
+import mysql.conector
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+my_user = os.getenv("USER")
+my_password = os.getenv("PASS")
+my_host = os.getenv("HOST")
+my_database = os.getenv("DATABASE")
+
+path_params = reqparse.RequestParser()
+path_params.add_argument('recommendation_id', type=int)
+path_params.add_argument('name', type=str)
+path_params.add_argument('email', type=str)
+path_params.add_argument('limit', type=float)
+path_params.add_argument('offset', type=float)
 
 
 class Recommendations(Resource):
 
     def get(self):
-        slk = []
+        connection = mysql.connector.connect(user=my_user, password=my_password,
+                                             host=my_host,
+                                             database=my_database)
+        cursor = connection.cursor()
+
+        indications = []
         for recommendation in RecommendationModel.query.all():
-            slk.append(recommendation.json())
-        return {'recommendations': slk}
+            indications.append(recommendation.json())
+        return {'recommendations': indications}
 
     def post(self):
 
