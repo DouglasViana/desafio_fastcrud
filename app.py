@@ -9,11 +9,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///datastorage.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 api = Api(app)
 
-
 @app.before_first_request
 def cria_datastorage():
     datastorage.create_all()
-
 
 api.add_resource(Employees, '/employees')
 api.add_resource(Employee, '/employee/<string:employee_id>')
